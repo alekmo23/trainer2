@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Экзамен - Дятлы России</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    :root {
+      --primary: #8B4513;
+      --primary-light: #A0522D;
+      --secondary: #5F9EA0;
+      --danger: #EF4444;
+      --warning: #F59E0B;
+    }
+    
+    .app-header {
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    }
+    
+    .exam-container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2rem 1rem;
+    }
+    
+    .exam-header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      gap: 1rem;
+    }
+    
+    .exam-title {
+      font-size: 1.5rem;
+      color: var(--primary);
+    }
+    
+    .exam-stats {
+      display: flex;
+      gap: 1.5rem;
+    }
+    
+    .stat-box {
+      background: var(--card-bg);
+      padding: 0.5rem 1rem;
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow-sm);
+      text-align: center;
+      min-width: 80px;
+    }
+    
+    .stat-value {
+      font-size: 1.2rem;
+      font-weight: 700;
+    }
+    
+    .stat-label {
+      font-size: 0.8rem;
+      color: var(--text-light);
+    }
+    
+    .timer {
+      color: var(--primary);
+      font-weight: 700;
+    }
+    
+    .timer.warning {
+      color: var(--warning);
+    }
+    
+    .timer.danger {
+      color: var(--danger);
+    }
+    
+    .progress-container {
+      width: 100%;
+      height: 8px;
+      background: #E5E7EB;
+      border-radius: 4px;
+      margin-bottom: 1.5rem;
+      overflow: hidden;
+    }
+    
+    .progress-bar {
+      height: 100%;
+      background: var(--primary);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+    
+    .question-counter {
+      text-align: center;
+      margin-bottom: 1rem;
+      color: var(--text-light);
+    }
+    
+    .bird-display {
+      position: relative;
+      margin-bottom: 2rem;
+    }
+    
+    .bird-image-container {
+      width: 100%;
+      height: 350px;
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      box-shadow: var(--shadow-md);
+    }
+    
+    .bird-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+    }
+    
+    .fullscreen-btn {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: rgba(0, 0, 0, 0.6);
+      color: white;
+      border: none;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 10;
+      transition: all 0.2s ease;
+    }
+    
+    .fullscreen-btn:hover {
+      background: rgba(0, 0, 0, 0.8);
+      transform: scale(1.1);
+    }
+    
+    .options-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .option-btn {
+      padding: 1rem;
+      background: var(--card-bg);
+      border: 2px solid #E5E7EB;
+      border-radius: var(--radius-sm);
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: center;
+    }
+    
+    .option-btn:hover:not(:disabled) {
+      border-color: var(--primary);
+    }
+    
+    .option-btn:disabled {
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
+    
+    .option-btn.correct {
+      background: var(--secondary);
+      color: white;
+      border-color: var(--secondary);
+    }
+    
+    .option-btn.incorrect {
+      background: var(--danger);
+      color: white;
+      border-color: var(--danger);
+    }
+    
+    .feedback {
+      padding: 1.5rem;
+      background: var(--card-bg);
+      border-radius: var(--radius-md);
+      margin-bottom: 1.5rem;
+      box-shadow: var(--shadow-sm);
+    }
+    
+    .feedback.correct {
+      background: #F0F8FF;
+      border-left: 4px solid var(--secondary);
+    }
+    
+    .feedback.incorrect {
+      background: #FEF2F2;
+      border-left: 4px solid var(--danger);
+    }
+    
+    .feedback-title {
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+    
+    .feedback-content {
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+    
+    .action-buttons {
+      display: flex;
+      justify-content: center;
+    }
+    
+    .next-btn {
+      padding: 1rem 2rem;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+    
+    .next-btn:hover:not(:disabled) {
+      background: var(--primary-light);
+    }
+    
+    .next-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    
+    .results-container {
+      text-align: center;
+      padding: 2rem;
+      display: none;
+    }
+    
+    .result-title {
+      font-size: 1.8rem;
+      margin-bottom: 1rem;
+      color: var(--primary);
+    }
+    
+    .result-score {
+      font-size: 3rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin: 1rem 0;
+    }
+    
+    .result-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin: 2rem 0;
+    }
+    
+    .result-stat {
+      background: var(--card-bg);
+      padding: 1rem;
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow-sm);
+    }
+    
+    .result-stat-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+    }
+    
+    .result-stat-label {
+      font-size: 0.9rem;
+      color: var(--text-light);
+    }
+    
+    .result-message {
+      max-width: 600px;
+      margin: 0 auto 2rem;
+      line-height: 1.6;
+    }
+    
+    .restart-btn {
+      padding: 1rem 2rem;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+    
+    .restart-btn:hover {
+      background: var(--primary-light);
+    }
+    
+    @media (max-width: 768px) {
+      .options-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .exam-stats {
+        gap: 0.5rem;
+      }
+      
+      .stat-box {
+        min-width: 70px;
+        padding: 0.5rem;
+      }
+      
+      .bird-image-container {
+        height: 250px;
+      }
+      
+      .result-stats {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .bird-image-container {
+        height: 200px;
+      }
+      
+      .exam-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      
+      .exam-stats {
+        width: 100%;
+        justify-content: space-between;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <header class="app-header">
+      <div class="header-content">
+        <h1>Экзамен: Дятлы России</h1>
+        <p class="subtitle">Проверьте свои знания на время</p>
+      </div>
+    </header>
+
+    <main class="exam-container">
+      <div id="quiz-interface">
+        <div class="exam-header">
+          <h2 class="exam-title">Определите вид дятла</h2>
+          <div class="exam-stats">
+            <div class="stat-box">
+              <div class="stat-value" id="correct-count">0</div>
+              <div class="stat-label">Правильно</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-value" id="incorrect-count">0</div>
+              <div class="stat-label">Ошибки</div>
+            </div>
+            <div class="stat-box timer" id="timer-box">
+              <div class="stat-value" id="timer">5:00</div>
+              <div class="stat-label">Осталось</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="progress-container">
+          <div class="progress-bar" id="progress-bar"></div>
+        </div>
+        
+        <div class="question-counter">
+          Вопрос <span id="current-question">1</span> из <span id="total-questions">10</span>
+        </div>
+        
+        <div class="bird-display">
+          <button class="fullscreen-btn" id="fullscreen-btn" title="Полноэкранный режим">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+            </svg>
+          </button>
+          <div class="bird-image-container">
+            <img id="bird-image" class="bird-image" src="" alt="Фото дятла" loading="lazy">
+          </div>
+        </div>
+        
+        <div id="feedback" class="feedback">
+          <div class="feedback-title" id="feedback-title"></div>
+          <div class="feedback-content" id="feedback-content"></div>
+        </div>
+        
+        <div class="options-grid" id="options-container">
+          <!-- Варианты ответов -->
+        </div>
+        
+        <div class="action-buttons">
+          <button id="next-btn" class="next-btn" disabled>Следующий вопрос</button>
+        </div>
+      </div>
+      
+      <div id="results-interface" class="results-container">
+        <h2 class="result-title">Результаты экзамена</h2>
+        <div class="result-score" id="final-score">0/10</div>
+        
+        <div class="result-stats">
+          <div class="result-stat">
+            <div class="result-stat-value" id="final-correct">0</div>
+            <div class="result-stat-label">Правильно</div>
+          </div>
+          <div class="result-stat">
+            <div class="result-stat-value" id="final-incorrect">0</div>
+            <div class="result-stat-label">Ошибки</div>
+          </div>
+          <div class="result-stat">
+            <div class="result-stat-value" id="final-time">0:00</div>
+            <div class="result-stat-label">Время</div>
+          </div>
+        </div>
+        
+        <p class="result-message" id="result-message"></p>
+        <button id="restart-btn" class="restart-btn">Пройти снова</button>
+      </div>
+    </main>
+
+    <footer class="app-footer">
+      <button class="admin-btn" onclick="window.location.href='index-woodpeckers.html'">На главную</button>
+    </footer>
+  </div>
+
+  <script>
+    // Данные о дятлах (загружаются из localStorage или используются стандартные)
+    const woodpeckersData = JSON.parse(localStorage.getItem('woodpeckersData')) || [
+      {
+        id: 1,
+        name: "Большой пёстрый дятел",
+        scientific: "Dendrocopos major",
+        image: "images/woodpeckers/great-spotted.jpg",
+        description: "Самый распространённый дятел с чёрно-белым оперением и красным подхвостьем.",
+        hint: "Ищите красное пятно на затылке у самцов и белые плечевые пятна.",
+        size: "22-23 см",
+        weight: "70-100 г"
+      },
+      {
+        id: 2,
+        name: "Малый пёстрый дятел",
+        scientific: "Dryobates minor",
+        image: "images/woodpeckers/lesser-spotted.jpg",
+        description: "Самый маленький дятел с поперечно-полосатыми боками.",
+        hint: "Размером с воробья, у самцов красная шапочка.",
+        size: "14-16 см",
+        weight: "20-30 г"
+      },
+      {
+        id: 3,
+        name: "Белоспинный дятел",
+        scientific: "Dendrocopos leucotos",
+        image: "images/woodpeckers/white-backed.jpg",
+        description: "Крупный дятел с чисто-белой спиной и розовым подхвостьем.",
+        hint: "Белая спина без чёрных полос и розовый низ.",
+        size: "24-26 см",
+        weight: "100-130 г"
+      },
+      {
+        id: 4,
+        name: "Средний пёстрый дятел",
+        scientific: "Dendrocopos medius",
+        image: "images/woodpeckers/middle-spotted.jpg",
+        description: "Дятел с красной шапочкой и слабым полосатым рисунком.",
+        hint: "Красная шапка до лба и розовато-красное подхвостье.",
+        size: "20-22 см",
+        weight: "50-80 г"
+      },
+      {
+        id: 5,
+        name: "Трёхпалый дятел",
+        scientific: "Picoides tridactylus",
+        image: "images/woodpeckers/three-toed.jpg",
+        description: "Дятел с жёлтой шапочкой и чёрным рисунком на спине.",
+        hint: "Жёлтая шапочка у самцов и отсутствие красных отметин.",
+        size: "21-24 см",
+        weight: "50-90 г"
+      },
+      {
+        id: 6,
+        name: "Зелёный дятел",
+        scientific: "Picus viridis",
+        image: "images/woodpeckers/green.jpg",
+        description: "Крупный дятел с оливково-зелёным окрасом и красной шапочкой.",
+        hint: "Зелёное оперение и чёрная маска вокруг глаз.",
+        size: "30-36 см",
+        weight: "150-250 г"
+      },
+      {
+        id: 7,
+        name: "Седой дятел",
+        scientific: "Picus canus",
+        image: "images/woodpeckers/grey-headed.jpg",
+        description: "Похож на зелёного дятла, но с серой головой и меньшими размерами.",
+        hint: "Серая голова и слабый ус у самцов.",
+        size: "25-28 см",
+        weight: "100-140 г"
+      },
+      {
+        id: 8,
+        name: "Желна (чёрный дятел)",
+        scientific: "Dryocopus martius",
+        image: "images/woodpeckers/black.jpg",
+        description: "Самый крупный дятел с полностью чёрным оперением и красной шапочкой.",
+        hint: "Размером с ворону, у самцов красная шапка.",
+        size: "45-50 см",
+        weight: "250-400 г"
+      },
+      {
+        id: 9,
+        name: "Вертишейка",
+        scientific: "Jynx torquilla",
+        image: "images/woodpeckers/wryneck.jpg",
+        description: "Необычный дятел с защитной окраской, умеет вертеть головой.",
+        hint: "Пёстрая окраска, напоминающая кору дерева.",
+        size: "16-18 см",
+        weight: "30-50 г"
+      }
+      // Остальные виды дятлов...
+    ];
+
+    // Настройки экзамена
+    const EXAM_CONFIG = {
+      totalQuestions: 10,
+      timeLimit: 300, // 5 минут в секундах
+      maxMistakes: 3
+    };
+
+    // Состояние экзамена
+    let examState = {
+      currentQuestion: 1,
+      correctAnswers: 0,
+      incorrectAnswers: 0,
+      currentBird: null,
+      selectedAnswer: null,
+      timeLeft: EXAM_CONFIG.timeLimit,
+      timerInterval: null,
+      isExamFinished: false,
+      startTime: null,
+      endTime: null
+    };
+
+    // Элементы DOM
+    const quizInterface = document.getElementById('quiz-interface');
+    const resultsInterface = document.getElementById('results-interface');
+    const birdImage = document.getElementById('bird-image');
+    const optionsContainer = document.getElementById('options-container');
+    const feedback = document.getElementById('feedback');
+    const feedbackTitle = document.getElementById('feedback-title');
+    const feedbackContent = document.getElementById('feedback-content');
+    const nextBtn = document.getElementById('next-btn');
+    const correctCount = document.getElementById('correct-count');
+    const incorrectCount = document.getElementById('incorrect-count');
+    const timerDisplay = document.getElementById('timer');
+    const timerBox = document.getElementById('timer-box');
+    const progressBar = document.getElementById('progress-bar');
+    const currentQuestionDisplay = document.getElementById('current-question');
+    const totalQuestionsDisplay = document.getElementById('total-questions');
+    const finalScore = document.getElementById('final-score');
+    const finalCorrect = document.getElementById('final-correct');
+    const finalIncorrect = document.getElementById('final-incorrect');
+    const finalTime = document.getElementById('final-time');
+    const resultMessage = document.getElementById('result-message');
+    const restartBtn = document.getElementById('restart-btn');
+    const fullscreenBtn = document.getElementById('fullscreen-btn');
+
+    // Инициализация экзамена
+    function initExam() {
+      examState = {
+        currentQuestion: 1,
+        correctAnswers: 0,
+        incorrectAnswers: 0,
+        currentBird: null,
+        selectedAnswer: null,
+        timeLeft: EXAM_CONFIG.timeLimit,
+        timerInterval: null,
+        isExamFinished: false,
+        startTime: new Date(),
+        endTime: null
+      };
+      
+      totalQuestionsDisplay.textContent = EXAM_CONFIG.totalQuestions;
+      correctCount.textContent = '0';
+      incorrectCount.textContent = '0';
+      currentQuestionDisplay.textContent = '1';
+      progressBar.style.width = '0%';
+      
+      quizInterface.style.display = 'block';
+      resultsInterface.style.display = 'none';
+      
+      startTimer();
+      displayQuestion();
+    }
+
+    // Запуск таймера
+    function startTimer() {
+      updateTimerDisplay();
+      examState.timerInterval = setInterval(() => {
+        examState.timeLeft--;
+        updateTimerDisplay();
+        
+        if (examState.timeLeft <= 0) {
+          finishExam();
+        }
+      }, 1000);
+    }
+
+    // Обновление отображения таймера
+    function updateTimerDisplay() {
+      const minutes = Math.floor(examState.timeLeft / 60);
+      const seconds = examState.timeLeft % 60;
+      timerDisplay.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+      
+      // Изменение цвета при малом времени
+      timerBox.className = 'stat-box timer';
+      if (examState.timeLeft <= 60) {
+        timerBox.classList.add('warning');
+      }
+      if (examState.timeLeft <= 30) {
+        timerBox.classList.remove('warning');
+        timerBox.classList.add('danger');
+      }
+    }
+
+    // Показать вопрос
+    function displayQuestion() {
+      resetQuestionState();
+      currentQuestionDisplay.textContent = examState.currentQuestion;
+      updateProgress();
+      
+      // Выбрать случайную птицу
+      examState.currentBird = getRandomBird();
+      loadBirdImage(examState.currentBird.image);
+      
+      // Сгенерировать варианты ответов
+      const options = getRandomOptions(examState.currentBird, 4);
+      renderOptions(options);
+    }
+
+    // Загрузить изображение птицы
+    function loadBirdImage(src) {
+      birdImage.src = '';
+      const loader = document.createElement('div');
+      loader.className = 'image-loader';
+      birdImage.parentNode.appendChild(loader);
+      
+      const img = new Image();
+      img.src = src;
+      img.onload = () => {
+        birdImage.src = src;
+        if (loader.parentNode) {
+          loader.parentNode.removeChild(loader);
+        }
+      };
+      img.onerror = () => {
+        if (loader.parentNode) {
+          loader.parentNode.removeChild(loader);
+        }
+        birdImage.parentNode.innerHTML = '<div class="no-image">Изображение не загружено</div>';
+      };
+    }
+
+    // Получить случайную птицу
+    function getRandomBird() {
+      const availableBirds = woodpeckersData.filter(bird => 
+        !examState.usedBirdIds || !examState.usedBirdIds.includes(bird.id)
+      );
+      
+      if (availableBirds.length === 0) {
+        // Если все птицы использованы, сбросим список
+        examState.usedBirdIds = [];
+        return getRandomBird();
+      }
+      
+      const randomBird = availableBirds[Math.floor(Math.random() * availableBirds.length)];
+      
+      // Запоминаем использованных птиц
+      if (!examState.usedBirdIds) {
+        examState.usedBirdIds = [];
+      }
+      examState.usedBirdIds.push(randomBird.id);
+      
+      return randomBird;
+    }
+
+    // Получить варианты ответов
+    function getRandomOptions(correctBird, count) {
+      const options = [correctBird];
+      
+      while (options.length < count) {
+        const randomBird = getRandomBird();
+        if (!options.some(b => b.id === randomBird.id)) {
+          options.push(randomBird);
+        }
+      }
+      
+      return shuffleArray(options);
+    }
+
+    // Перемешать массив
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    // Отрендерить варианты ответов
+    function renderOptions(options) {
+      optionsContainer.innerHTML = '';
+      
+      options.forEach(bird => {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn';
+        btn.textContent = bird.name;
+        btn.dataset.id = bird.id;
+        btn.addEventListener('click', () => selectAnswer(bird.id));
+        optionsContainer.appendChild(btn);
+      });
+    }
+
+    // Выбрать ответ
+    function selectAnswer(birdId) {
+      if (examState.selectedAnswer !== null) return;
+      
+      examState.selectedAnswer = birdId;
+      const isCorrect = birdId === examState.currentBird.id;
+      
+      if (isCorrect) {
+        examState.correctAnswers++;
+        correctCount.textContent = examState.correctAnswers;
+        showFeedback(true);
+      } else {
+        examState.incorrectAnswers++;
+        incorrectCount.textContent = examState.incorrectAnswers;
+        showFeedback(false);
+        
+        // Проверить, не превышено ли количество ошибок
+        if (examState.incorrectAnswers >= EXAM_CONFIG.maxMistakes) {
+          setTimeout(finishExam, 1500);
+          return;
+        }
+      }
+      
+      highlightAnswers(birdId);
+      nextBtn.disabled = false;
+    }
+
+    // Подсветить правильные/неправильные ответы
+    function highlightAnswers(selectedId) {
+      document.querySelectorAll('.option-btn').forEach(btn => {
+        btn.disabled = true;
+        if (btn.dataset.id === examState.currentBird.id.toString()) {
+          btn.classList.add('correct');
+        } else if (btn.dataset.id === selectedId.toString() && selectedId !== examState.currentBird.id) {
+          btn.classList.add('incorrect');
+        }
+      });
+    }
+
+    // Показать обратную связь
+    function showFeedback(isCorrect) {
+      if (isCorrect) {
+        feedback.className = 'feedback correct';
+        feedbackTitle.textContent = `Правильно! Это ${examState.currentBird.name}`;
+        feedbackContent.textContent = examState.currentBird.description;
+      } else {
+        feedback.className = 'feedback incorrect';
+        feedbackTitle.textContent = `Ошибка! Это ${examState.currentBird.name}`;
+        feedbackContent.textContent = examState.currentBird.description;
+      }
+    }
+
+    // Перейти к следующему вопросу
+    function nextQuestion() {
+      examState.currentQuestion++;
+      
+      if (examState.currentQuestion > EXAM_CONFIG.totalQuestions) {
+        finishExam();
+      } else {
+        displayQuestion();
+      }
+    }
+
+    // Завершить экзамен
+    function finishExam() {
+      clearInterval(examState.timerInterval);
+      examState.isExamFinished = true;
+      examState.endTime = new Date();
+      
+      // Рассчитать результаты
+      const score = examState.correctAnswers;
+      const totalQuestions = EXAM_CONFIG.totalQuestions;
+      const percentage = Math.round((score / totalQuestions) * 100);
+      const timeUsed = EXAM_CONFIG.timeLimit - examState.timeLeft;
+      
+      // Показать интерфейс результатов
+      quizInterface.style.display = 'none';
+      resultsInterface.style.display = 'block';
+      
+      // Заполнить данные
+      finalScore.textContent = `${score}/${totalQuestions}`;
+      finalCorrect.textContent = examState.correctAnswers;
+      finalIncorrect.textContent = examState.incorrectAnswers;
+      
+      // Форматирование времени
+      const minutes = Math.floor(timeUsed / 60);
+      const seconds = timeUsed % 60;
+      finalTime.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+      
+      // Показать сообщение в зависимости от результата
+      if (percentage >= 90) {
+        resultMessage.textContent = 'Отличный результат! Вы настоящий эксперт по дятлам!';
+      } else if (percentage >= 70) {
+        resultMessage.textContent = 'Хороший результат! Вы хорошо разбираетесь в дятлах!';
+      } else if (percentage >= 50) {
+        resultMessage.textContent = 'Неплохой результат, но есть куда расти!';
+      } else {
+        resultMessage.textContent = 'Попробуйте ещё раз! Рекомендуем пройти режим обучения.';
+      }
+    }
+
+    // Сбросить состояние вопроса
+    function resetQuestionState() {
+      examState.selectedAnswer = null;
+      nextBtn.disabled = true;
+      feedback.className = 'feedback';
+      feedbackTitle.textContent = '';
+      feedbackContent.textContent = '';
+    }
+
+    // Обновить прогресс-бар
+    function updateProgress() {
+      const progress = (examState.currentQuestion - 1) / EXAM_CONFIG.totalQuestions * 100;
+      progressBar.style.width = `${progress}%`;
+    }
+
+    // Переключение полноэкранного режима
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        birdImage.parentElement.requestFullscreen().catch(err => {
+          console.error(`Ошибка при переходе в полноэкранный режим: ${err.message}`);
+        });
+      } else {
+        document.exitFullscreen();
+      }
+    }
+
+    // Назначить обработчики событий
+    nextBtn.addEventListener('click', nextQuestion);
+    restartBtn.addEventListener('click', initExam);
+    fullscreenBtn.addEventListener('click', toggleFullscreen);
+
+    // Обработка клавиатуры
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !nextBtn.disabled && examState.selectedAnswer !== null) {
+        nextQuestion();
+      }
+    });
+
+    // Запустить экзамен при загрузке
+    window.addEventListener('DOMContentLoaded', initExam);
+  </script>
+</body>
+</html>

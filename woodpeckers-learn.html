@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Обучение - Дятлы России</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .header-woodpecker {
+      background: linear-gradient(135deg, #8B4513, #A0522D);
+    }
+    .bird-card.woodpecker {
+      border-top: 4px solid #8B4513;
+    }
+    .search-box {
+      max-width: 500px;
+      margin: 0 auto 2rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <header class="app-header header-woodpecker">
+      <div class="header-content">
+        <h1>Все виды дятлов</h1>
+        <p class="subtitle">Изучите особенности каждого вида</p>
+      </div>
+    </header>
+
+    <main class="learn-container">
+      <div class="learning-header">
+        <div class="search-box">
+          <input type="text" class="search-input" id="bird-search" placeholder="Поиск дятлов...">
+          <span class="search-icon">🔍</span>
+        </div>
+      </div>
+      
+      <div class="birds-grid" id="birds-container">
+        <!-- Карточки будут добавлены через JS -->
+      </div>
+    </main>
+
+    <footer class="app-footer">
+      <button class="admin-btn" onclick="window.location.href='index-woodpeckers.html'">На главную</button>
+    </footer>
+  </div>
+
+  <script>
+    // Данные о дятлах с WebP изображениями
+    const woodpeckersData = [
+     {
+        id: 1,
+        name: "Большой пёстрый дятел",
+        scientific: "Dendrocopos major",
+        image: "images/woodpeckers/great-spotted.jpg",
+        description: "Самый распространённый дятел с чёрно-белым оперением и красным подхвостьем.",
+        hint: "Ищите красное пятно на затылке у самцов и белые плечевые пятна.",
+        size: "22-23 см",
+        weight: "70-100 г"
+      },
+      {
+        id: 2,
+        name: "Малый пёстрый дятел",
+        scientific: "Dryobates minor",
+        image: "images/woodpeckers/lesser-spotted.jpg",
+        description: "Самый маленький дятел с поперечно-полосатыми боками.",
+        hint: "Размером с воробья, у самцов красная шапочка.",
+        size: "14-16 см",
+        weight: "20-30 г"
+      },
+      {
+        id: 3,
+        name: "Белоспинный дятел",
+        scientific: "Dendrocopos leucotos",
+        image: "images/woodpeckers/white-backed.jpg",
+        description: "Крупный дятел с чисто-белой спиной и розовым подхвостьем.",
+        hint: "Белая спина без чёрных полос и розовый низ.",
+        size: "24-26 см",
+        weight: "100-130 г"
+      },
+      {
+        id: 4,
+        name: "Средний пёстрый дятел",
+        scientific: "Dendrocopos medius",
+        image: "images/woodpeckers/middle-spotted.jpg",
+        description: "Дятел с красной шапочкой и слабым полосатым рисунком.",
+        hint: "Красная шапка до лба и розовато-красное подхвостье.",
+        size: "20-22 см",
+        weight: "50-80 г"
+      },
+      {
+        id: 5,
+        name: "Трёхпалый дятел",
+        scientific: "Picoides tridactylus",
+        image: "images/woodpeckers/three-toed.jpg",
+        description: "Дятел с жёлтой шапочкой и чёрным рисунком на спине.",
+        hint: "Жёлтая шапочка у самцов и отсутствие красных отметин.",
+        size: "21-24 см",
+        weight: "50-90 г"
+      },
+      {
+        id: 6,
+        name: "Зелёный дятел",
+        scientific: "Picus viridis",
+        image: "images/woodpeckers/green.jpg",
+        description: "Крупный дятел с оливково-зелёным окрасом и красной шапочкой.",
+        hint: "Зелёное оперение и чёрная маска вокруг глаз.",
+        size: "30-36 см",
+        weight: "150-250 г"
+      },
+      {
+        id: 7,
+        name: "Седой дятел",
+        scientific: "Picus canus",
+        image: "images/woodpeckers/grey-headed.jpg",
+        description: "Похож на зелёного дятла, но с серой головой и меньшими размерами.",
+        hint: "Серая голова и слабый ус у самцов.",
+        size: "25-28 см",
+        weight: "100-140 г"
+      },
+      {
+        id: 8,
+        name: "Желна (чёрный дятел)",
+        scientific: "Dryocopus martius",
+        image: "images/woodpeckers/black.jpg",
+        description: "Самый крупный дятел с полностью чёрным оперением и красной шапочкой.",
+        hint: "Размером с ворону, у самцов красная шапка.",
+        size: "45-50 см",
+        weight: "250-400 г"
+      },
+      {
+        id: 9,
+        name: "Вертишейка",
+        scientific: "Jynx torquilla",
+        image: "images/woodpeckers/wryneck.jpg",
+        description: "Необычный дятел с защитной окраской, умеет вертеть головой.",
+        hint: "Пёстрая окраска, напоминающая кору дерева.",
+        size: "16-18 см",
+        weight: "30-50 г"
+      }
+      // Остальные виды дятлов...
+    ];
+
+    document.addEventListener('DOMContentLoaded', () => {
+      renderBirdsList();
+      setupSearch();
+      setupImageLoading();
+    });
+
+    function renderBirdsList(birds = woodpeckersData) {
+      const container = document.getElementById('birds-container');
+      container.innerHTML = '';
+      
+      if (birds.length === 0) {
+        container.innerHTML = '<p class="no-results">Ничего не найдено. Попробуйте изменить поисковый запрос.</p>';
+        return;
+      }
+      
+      birds.forEach(bird => {
+        const card = document.createElement('div');
+        card.className = 'bird-card woodpecker';
+        card.innerHTML = `
+          <div class="bird-image-container">
+            <img 
+              src="${bird.thumb}" 
+              data-src="${bird.image}" 
+              alt="${bird.name}" 
+              class="bird-image" 
+              loading="lazy"
+              width="300"
+              height="200"
+            >
+          </div>
+          <div class="bird-info">
+            <h3 class="bird-name">${bird.name}</h3>
+            <div class="bird-scientific">${bird.scientific}</div>
+            <p class="bird-description">${bird.description}</p>
+            <div class="bird-stats">
+              <div class="stat-item">
+                <span class="stat-icon">📏</span>
+                <span>${bird.size}</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-icon">⚖️</span>
+                <span>${bird.weight}</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-icon">🌳</span>
+                <span>${bird.habitat}</span>
+              </div>
+            </div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function setupSearch() {
+      const searchInput = document.getElementById('bird-search');
+      searchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase().trim();
+        const filtered = woodpeckersData.filter(bird => 
+          bird.name.toLowerCase().includes(searchTerm) || 
+          bird.scientific.toLowerCase().includes(searchTerm) ||
+          bird.description.toLowerCase().includes(searchTerm) ||
+          bird.habitat.toLowerCase().includes(searchTerm)
+        );
+        renderBirdsList(filtered);
+      });
+    }
+
+    function setupImageLoading() {
+      const lazyImages = document.querySelectorAll('img[loading="lazy"]');
+      
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const img = entry.target;
+            if (img.dataset.src) {
+              img.src = img.dataset.src;
+              img.onload = () => {
+                img.removeAttribute('data-src');
+              };
+            }
+            observer.unobserve(img);
+          }
+        });
+      }, {
+        rootMargin: '200px'
+      });
+
+      lazyImages.forEach(img => {
+        observer.observe(img);
+      });
+    }
+  </script>
+</body>
+</html>

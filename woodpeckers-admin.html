@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Редактор - Дятлы России</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    :root {
+      --primary: #8B4513;
+      --primary-light: #A0522D;
+      --secondary: #5F9EA0;
+      --danger: #EF4444;
+    }
+    
+    .header-woodpecker {
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    }
+    
+    .admin-container {
+      padding: 2rem 0;
+    }
+    
+    .admin-header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      gap: 1rem;
+    }
+    
+    .admin-title {
+      font-size: 1.8rem;
+      color: var(--primary);
+    }
+    
+    .admin-actions {
+      display: flex;
+      gap: 1rem;
+    }
+    
+    .primary-btn {
+      background: var(--primary);
+      color: white;
+    }
+    
+    .primary-btn:hover {
+      background: var(--primary-light);
+    }
+    
+    .secondary-btn {
+      background: #6B7280;
+      color: white;
+    }
+    
+    .secondary-btn:hover {
+      background: #4B5563;
+    }
+    
+    .danger-btn {
+      background: var(--danger);
+      color: white;
+    }
+    
+    .danger-btn:hover {
+      background: #DC2626;
+    }
+    
+    .editor-grid {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 2rem;
+    }
+    
+    .birds-list {
+      background: var(--card-bg);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+    
+    .search-box {
+      padding: 1rem;
+      border-bottom: 1px solid #E5E7EB;
+      display: flex;
+      align-items: center;
+    }
+    
+    .search-input {
+      flex: 1;
+      padding: 0.75rem 1rem;
+      border: 1px solid #E5E7EB;
+      border-radius: var(--radius-sm);
+      font-family: inherit;
+    }
+    
+    .search-icon {
+      margin-left: -2rem;
+      color: var(--text-light);
+    }
+    
+    #birds-list-container {
+      max-height: 600px;
+      overflow-y: auto;
+    }
+    
+    .bird-item {
+      padding: 1rem;
+      border-bottom: 1px solid #E5E7EB;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+    
+    .bird-item:hover {
+      background: #F9FAFB;
+    }
+    
+    .bird-item.active {
+      background: #F0F8FF;
+      border-left: 3px solid var(--secondary);
+    }
+    
+    .bird-item h4 {
+      margin-bottom: 0.25rem;
+      color: var(--text);
+    }
+    
+    .bird-item .bird-scientific {
+      font-size: 0.85rem;
+      color: var(--text-light);
+      font-style: italic;
+    }
+    
+    .editor-form {
+      background: var(--card-bg);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-sm);
+      padding: 2rem;
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: var(--text-light);
+    }
+    
+    .empty-state h3 {
+      margin-bottom: 0.5rem;
+      color: var(--text);
+    }
+    
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+    
+    .form-label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      color: var(--text);
+    }
+    
+    .form-input, .form-textarea {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 1px solid #E5E7EB;
+      border-radius: var(--radius-sm);
+      font-family: inherit;
+      transition: border-color 0.2s ease;
+    }
+    
+    .form-input:focus, .form-textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(139, 69, 19, 0.1);
+    }
+    
+    .form-textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+    
+    .form-actions {
+      display: flex;
+      gap: 1rem;
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #E5E7EB;
+    }
+    
+    .image-preview {
+      width: 100%;
+      height: 200px;
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      margin-bottom: 1rem;
+      background: #F3F4F6;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .image-preview img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+    
+    .no-image {
+      color: var(--text-light);
+      text-align: center;
+      padding: 2rem;
+    }
+    
+    @media (max-width: 992px) {
+      .editor-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      #birds-list-container {
+        max-height: 300px;
+      }
+    }
+    
+    @media (max-width: 576px) {
+      .admin-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      
+      .admin-actions {
+        width: 100%;
+      }
+      
+      .admin-btn {
+        flex: 1;
+        text-align: center;
+      }
+      
+      .form-actions {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <header class="app-header header-woodpecker">
+      <div class="header-content">
+        <h1>Редактор дятлов</h1>
+        <p class="subtitle">Управление базой данных</p>
+      </div>
+    </header>
+
+    <main class="admin-container">
+      <div class="admin-header">
+        <h2 class="admin-title">Все виды дятлов</h2>
+        <div class="admin-actions">
+          <button class="admin-btn primary-btn" id="add-bird-btn">
+            + Добавить дятла
+          </button>
+          <button class="admin-btn secondary-btn" onclick="window.location.href='index-woodpeckers.html'">
+            ← На главную
+          </button>
+        </div>
+      </div>
+      
+      <div class="editor-grid">
+        <div class="birds-list">
+          <div class="search-box">
+            <input type="text" class="search-input" id="bird-search" placeholder="Поиск дятлов...">
+            <span class="search-icon">🔍</span>
+          </div>
+          <div id="birds-list-container">
+            <!-- Список будет заполнен через JS -->
+          </div>
+        </div>
+        
+        <div class="editor-form" id="editor-form">
+          <div class="empty-state">
+            <h3>Выберите дятла для редактирования</h3>
+            <p>Или создайте новую запись</p>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer class="app-footer">
+      <button class="admin-btn" onclick="window.location.href='index-woodpeckers.html'">На главную</button>
+    </footer>
+  </div>
+
+  <script>
+    // Данные о дятлах (загружаются из localStorage или используются стандартные)
+    let woodpeckersData = JSON.parse(localStorage.getItem('woodpeckersData')) || [
+      {
+        id: 1,
+        name: "Большой пёстрый дятел",
+        scientific: "Dendrocopos major",
+        image: "images/woodpeckers/great-spotted.jpg",
+        description: "Самый распространённый дятел с чёрно-белым оперением и красным подхвостьем.",
+        hint: "Ищите красное пятно на затылке у самцов и белые плечевые пятна.",
+        size: "22-23 см",
+        weight: "70-100 г"
+      },
+      {
+        id: 2,
+        name: "Малый пёстрый дятел",
+        scientific: "Dryobates minor",
+        image: "images/woodpeckers/lesser-spotted.jpg",
+        description: "Самый маленький дятел с поперечно-полосатыми боками.",
+        hint: "Размером с воробья, у самцов красная шапочка.",
+        size: "14-16 см",
+        weight: "20-30 г"
+      },
+      {
+        id: 3,
+        name: "Белоспинный дятел",
+        scientific: "Dendrocopos leucotos",
+        image: "images/woodpeckers/white-backed.jpg",
+        description: "Крупный дятел с чисто-белой спиной и розовым подхвостьем.",
+        hint: "Белая спина без чёрных полос и розовый низ.",
+        size: "24-26 см",
+        weight: "100-130 г"
+      },
+      {
+        id: 4,
+        name: "Средний пёстрый дятел",
+        scientific: "Dendrocopos medius",
+        image: "images/woodpeckers/middle-spotted.jpg",
+        description: "Дятел с красной шапочкой и слабым полосатым рисунком.",
+        hint: "Красная шапка до лба и розовато-красное подхвостье.",
+        size: "20-22 см",
+        weight: "50-80 г"
+      },
+      {
+        id: 5,
+        name: "Трёхпалый дятел",
+        scientific: "Picoides tridactylus",
+        image: "images/woodpeckers/three-toed.jpg",
+        description: "Дятел с жёлтой шапочкой и чёрным рисунком на спине.",
+        hint: "Жёлтая шапочка у самцов и отсутствие красных отметин.",
+        size: "21-24 см",
+        weight: "50-90 г"
+      },
+      {
+        id: 6,
+        name: "Зелёный дятел",
+        scientific: "Picus viridis",
+        image: "images/woodpeckers/green.jpg",
+        description: "Крупный дятел с оливково-зелёным окрасом и красной шапочкой.",
+        hint: "Зелёное оперение и чёрная маска вокруг глаз.",
+        size: "30-36 см",
+        weight: "150-250 г"
+      },
+      {
+        id: 7,
+        name: "Седой дятел",
+        scientific: "Picus canus",
+        image: "images/woodpeckers/grey-headed.jpg",
+        description: "Похож на зелёного дятла, но с серой головой и меньшими размерами.",
+        hint: "Серая голова и слабый ус у самцов.",
+        size: "25-28 см",
+        weight: "100-140 г"
+      },
+      {
+        id: 8,
+        name: "Желна (чёрный дятел)",
+        scientific: "Dryocopus martius",
+        image: "images/woodpeckers/black.jpg",
+        description: "Самый крупный дятел с полностью чёрным оперением и красной шапочкой.",
+        hint: "Размером с ворону, у самцов красная шапка.",
+        size: "45-50 см",
+        weight: "250-400 г"
+      },
+      {
+        id: 9,
+        name: "Вертишейка",
+        scientific: "Jynx torquilla",
+        image: "images/woodpeckers/wryneck.jpg",
+        description: "Необычный дятел с защитной окраской, умеет вертеть головой.",
+        hint: "Пёстрая окраска, напоминающая кору дерева.",
+        size: "16-18 см",
+        weight: "30-50 г"
+      }
+    ];
+
+    // Состояние редактора
+    let currentBirdId = null;
+    let isNewBird = false;
+    let filteredBirds = [];
+
+    // Элементы DOM
+    const birdsListContainer = document.getElementById('birds-list-container');
+    const editorForm = document.getElementById('editor-form');
+    const addBirdBtn = document.getElementById('add-bird-btn');
+    const searchInput = document.getElementById('bird-search');
+
+    // Инициализация
+    document.addEventListener('DOMContentLoaded', () => {
+      saveData(); // Инициализация хранилища
+      renderBirdsList();
+      setupEventListeners();
+    });
+
+    // Сохранение данных в localStorage
+    function saveData() {
+      localStorage.setItem('woodpeckersData', JSON.stringify(woodpeckersData));
+    }
+
+    // Отображение списка птиц
+    function renderBirdsList(birds = woodpeckersData) {
+      birdsListContainer.innerHTML = '';
+      filteredBirds = [...birds];
+      
+      if (birds.length === 0) {
+        birdsListContainer.innerHTML = '<div class="empty-state"><p>Нет данных о дятлах</p></div>';
+        return;
+      }
+      
+      birds.forEach(bird => {
+        const birdItem = document.createElement('div');
+        birdItem.className = 'bird-item';
+        if (currentBirdId === bird.id) birdItem.classList.add('active');
+        
+        birdItem.innerHTML = `
+          <h4>${bird.name}</h4>
+          <div class="bird-scientific">${bird.scientific}</div>
+        `;
+        
+        birdItem.addEventListener('click', () => loadBirdForEditing(bird.id));
+        birdsListContainer.appendChild(birdItem);
+      });
+    }
+
+    // Загрузка птицы для редактирования
+    function loadBirdForEditing(birdId) {
+      currentBirdId = birdId;
+      isNewBird = false;
+      
+      const bird = woodpeckersData.find(b => b.id === birdId);
+      if (!bird) return;
+      
+      renderEditorForm(bird);
+      renderBirdsList(filteredBirds); // Обновляем список с сохранением фильтрации
+    }
+
+    // Отображение формы редактирования
+    function renderEditorForm(bird = null) {
+      editorForm.innerHTML = '';
+      
+      const form = document.createElement('form');
+      form.id = 'bird-form';
+      form.innerHTML = `
+        <div class="form-group">
+          <label class="form-label">Название</label>
+          <input type="text" class="form-input" id="bird-name" value="${bird?.name || ''}" required>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Научное название</label>
+          <input type="text" class="form-input" id="bird-scientific" value="${bird?.scientific || ''}" required>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Изображение (URL)</label>
+          <div class="image-preview">
+            ${bird?.image ? `<img src="${bird.image}" alt="Превью">` : '<div class="no-image">Нет изображения</div>'}
+          </div>
+          <input type="text" class="form-input" id="bird-image" value="${bird?.image || ''}" placeholder="https://example.com/image.webp">
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Описание</label>
+          <textarea class="form-textarea" id="bird-description" rows="4" required>${bird?.description || ''}</textarea>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Подсказка</label>
+          <textarea class="form-textarea" id="bird-hint" rows="2" required>${bird?.hint || ''}</textarea>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Размер</label>
+          <input type="text" class="form-input" id="bird-size" value="${bird?.size || ''}">
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Вес</label>
+          <input type="text" class="form-input" id="bird-weight" value="${bird?.weight || ''}">
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Место обитания</label>
+          <input type="text" class="form-input" id="bird-habitat" value="${bird?.habitat || ''}">
+        </div>
+        
+        <div class="form-actions">
+          <button type="submit" class="admin-btn primary-btn">Сохранить</button>
+          ${bird ? `<button type="button" class="admin-btn danger-btn" id="delete-btn">Удалить</button>` : ''}
+          <button type="button" class="admin-btn secondary-btn" id="cancel-btn">Отмена</button>
+        </div>
+      `;
+      
+      form.addEventListener('submit', saveBird);
+      
+      if (bird) {
+        const deleteBtn = document.getElementById('delete-btn');
+        deleteBtn.addEventListener('click', deleteBird);
+      }
+      
+      const cancelBtn = document.getElementById('cancel-btn');
+      cancelBtn.addEventListener('click', () => {
+        if (isNewBird) {
+          currentBirdId = null;
+          renderEmptyState();
+        }
+      });
+      
+      // Обновление превью при изменении URL изображения
+      const imageInput = form.querySelector('#bird-image');
+      const imagePreview = form.querySelector('.image-preview');
+      
+      imageInput.addEventListener('input', () => {
+        const url = imageInput.value.trim();
+        if (url) {
+          imagePreview.innerHTML = `<img src="${url}" alt="Превью" onerror="this.parentNode.innerHTML='<div class=\\'no-image\\'>Ошибка загрузки</div>'">`;
+        } else {
+          imagePreview.innerHTML = '<div class="no-image">Нет изображения</div>';
+        }
+      });
+      
+      editorForm.appendChild(form);
+    }
+
+    // Сохранение птицы
+    function saveBird(e) {
+      e.preventDefault();
+      
+      const birdData = {
+        id: currentBirdId || generateId(),
+        name: document.getElementById('bird-name').value,
+        scientific: document.getElementById('bird-scientific').value,
+        image: document.getElementById('bird-image').value,
+        description: document.getElementById('bird-description').value,
+        hint: document.getElementById('bird-hint').value,
+        size: document.getElementById('bird-size').value,
+        weight: document.getElementById('bird-weight').value,
+        habitat: document.getElementById('bird-habitat').value
+      };
+      
+      if (isNewBird) {
+        woodpeckersData.push(birdData);
+      } else {
+        const index = woodpeckersData.findIndex(b => b.id === currentBirdId);
+        if (index !== -1) {
+          woodpeckersData[index] = birdData;
+        }
+      }
+      
+      saveData();
+      currentBirdId = birdData.id;
+      isNewBird = false;
+      
+      // Применяем текущий поисковый запрос
+      const searchTerm = searchInput.value.toLowerCase();
+      const filtered = woodpeckersData.filter(bird => 
+        bird.name.toLowerCase().includes(searchTerm) || 
+        bird.scientific.toLowerCase().includes(searchTerm)
+      );
+      
+      renderBirdsList(filtered);
+      loadBirdForEditing(birdData.id);
+      
+      // Показываем уведомление
+      showNotification('Данные успешно сохранены', 'success');
+    }
+
+    // Удаление птицы
+    function deleteBird() {
+      if (!currentBirdId) return;
+      
+      if (confirm('Вы уверены, что хотите удалить этого дятла? Это действие нельзя отменить.')) {
+        woodpeckersData = woodpeckersData.filter(b => b.id !== currentBirdId);
+        saveData();
+        
+        currentBirdId = null;
+        renderEmptyState();
+        
+        // Обновляем список с учетом текущего поиска
+        const searchTerm = searchInput.value.toLowerCase();
+        const filtered = woodpeckersData.filter(bird => 
+          bird.name.toLowerCase().includes(searchTerm) || 
+          bird.scientific.toLowerCase().includes(searchTerm)
+        );
+        
+        renderBirdsList(filtered);
+        showNotification('Дятел успешно удален', 'success');
+      }
+    }
+
+    // Показать пустое состояние
+    function renderEmptyState() {
+      editorForm.innerHTML = `
+        <div class="empty-state">
+          <h3>Выберите дятла для редактирования</h3>
+          <p>Или создайте новую запись</p>
+        </div>
+      `;
+    }
+
+    // Генерация нового ID
+    function generateId() {
+      return woodpeckersData.length > 0 ? Math.max(...woodpeckersData.map(b => b.id)) + 1 : 1;
+    }
+
+    // Показать уведомление
+    function showNotification(message, type = 'success') {
+      const notification = document.createElement('div');
+      notification.className = `notification ${type}`;
+      notification.textContent = message;
+      
+      document.body.appendChild(notification);
+      
+      setTimeout(() => {
+        notification.classList.add('fade-out');
+        setTimeout(() => notification.remove(), 300);
+      }, 3000);
+    }
+
+    // Настройка обработчиков событий
+    function setupEventListeners() {
+      addBirdBtn.addEventListener('click', () => {
+        currentBirdId = null;
+        isNewBird = true;
+        renderEditorForm();
+        renderBirdsList(filteredBirds);
+      });
+      
+      searchInput.addEventListener('input', () => {
+        const searchTerm = searchInput.value.toLowerCase();
+        filteredBirds = woodpeckersData.filter(bird => 
+          bird.name.toLowerCase().includes(searchTerm) || 
+          bird.scientific.toLowerCase().includes(searchTerm) ||
+          (bird.description && bird.description.toLowerCase().includes(searchTerm)) ||
+          (bird.habitat && bird.habitat.toLowerCase().includes(searchTerm))
+        );
+        
+        renderBirdsList(filteredBirds);
+      });
+    }
+  </script>
+</body>
+</html>

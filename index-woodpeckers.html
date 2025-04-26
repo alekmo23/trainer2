@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Тренажер по дятлам России</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    .header-woodpecker {
+      background: linear-gradient(135deg, #8B4513, #A0522D);
+    }
+    .mode-card.woodpecker {
+      border-top-color: #8B4513;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <header class="app-header header-woodpecker">
+      <div class="header-content">
+        <h1>Тренажёр по дятлам</h1>
+        <p class="subtitle">Изучите всех дятлов России</p>
+      </div>
+      <div class="header-bird" style="background-image: url('images/woodpeckers/great-spotted.jpg')"></div>
+    </header>
+
+    <main class="main-content">
+      <div class="mode-selector">
+        <div class="mode-card woodpecker" id="learn-mode">
+          <div class="mode-icon">📚</div>
+          <h3>Обучение</h3>
+          <p>Изучите все виды дятлов с подробными описаниями</p>
+        </div>
+        
+        <div class="mode-card woodpecker" id="practice-mode">
+          <div class="mode-icon">🔍</div>
+          <h3>Тренировка</h3>
+          <p>Определяйте дятлов по фотографиям без ограничений</p>
+        </div>
+        
+        <div class="mode-card woodpecker" id="test-mode">
+          <div class="mode-icon">⏱️</div>
+          <h3>Экзамен</h3>
+          <p>Проверьте знания на время с ограниченными попытками</p>
+        </div>
+      </div>
+
+      <div class="quick-stats">
+        <div class="stat-card">
+          <div class="stat-value">9</div>
+          <div class="stat-label">видов</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">50+</div>
+          <div class="stat-label">фотографий</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">∞</div>
+          <div class="stat-label">попыток</div>
+        </div>
+      </div>
+    </main>
+
+    <footer class="app-footer">
+      <button class="admin-btn" onclick="window.location.href='index.html'">К воробьиным</button>
+      <button class="admin-btn" onclick="window.location.href='woodpeckers-admin.html'">Редактор</button>
+    </footer>
+  </div>
+
+  <script>
+    // Обработчики для режимов
+    document.getElementById('learn-mode').addEventListener('click', () => {
+      window.location.href = 'woodpeckers-learn.html';
+    });
+    
+    document.getElementById('practice-mode').addEventListener('click', () => {
+      window.location.href = 'woodpeckers-practice.html';
+    });
+    
+    document.getElementById('test-mode').addEventListener('click', () => {
+      window.location.href = 'woodpeckers-test.html';
+    });
+  </script>
+</body>
+</html>

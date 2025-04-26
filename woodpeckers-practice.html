@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Тренировка - Дятлы России</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    :root {
+      --primary: #8B4513;
+      --primary-light: #A0522D;
+      --secondary: #5F9EA0;
+      --accent: #D2691E;
+    }
+    
+    .app-header {
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    }
+    
+    .stats-bar {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      margin-bottom: 2rem;
+    }
+    
+    .stat-item {
+      text-align: center;
+      min-width: 100px;
+    }
+    
+    .stat-value {
+      font-size: 1.8rem;
+      font-weight: 700;
+    }
+    
+    .stat-label {
+      font-size: 0.9rem;
+      color: var(--text-light);
+    }
+    
+    .stat-item.correct .stat-value {
+      color: var(--secondary);
+    }
+    
+    .stat-item.incorrect .stat-value {
+      color: #EF4444;
+    }
+    
+    .options-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+      max-width: 800px;
+      margin: 0 auto 2rem;
+    }
+    
+    .option-btn {
+      padding: 1rem;
+      background: var(--card-bg);
+      border: 2px solid #E5E7EB;
+      border-radius: var(--radius-sm);
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: center;
+    }
+    
+    .option-btn:hover:not(:disabled) {
+      border-color: var(--primary);
+    }
+    
+    .option-btn:disabled {
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
+    
+    .option-btn.correct {
+      background: var(--secondary);
+      color: white;
+      border-color: var(--secondary);
+    }
+    
+    .option-btn.incorrect {
+      background: #EF4444;
+      color: white;
+      border-color: #EF4444;
+    }
+    
+    .feedback {
+      padding: 1.5rem;
+      border-radius: var(--radius-md);
+      margin-bottom: 2rem;
+      max-width: 800px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    
+    .feedback.correct {
+      background: #F0F8FF;
+      border-left: 4px solid var(--secondary);
+    }
+    
+    .feedback.incorrect {
+      background: #FEF2F2;
+      border-left: 4px solid #EF4444;
+    }
+    
+    .feedback-title {
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+    
+    .hint-content {
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+    
+    .action-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    
+    .hint-btn, .next-btn {
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+    
+    .hint-btn {
+      background: #E5E7EB;
+      color: var(--text);
+    }
+    
+    .hint-btn:hover:not(:disabled) {
+      background: #D1D5DB;
+    }
+    
+    .next-btn {
+      background: var(--primary);
+      color: white;
+    }
+    
+    .next-btn:hover:not(:disabled) {
+      background: var(--primary-light);
+    }
+    
+    .next-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    
+    @media (max-width: 768px) {
+      .options-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .stats-bar {
+        gap: 1rem;
+      }
+      
+      .stat-item {
+        min-width: 80px;
+      }
+      
+      .stat-value {
+        font-size: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <header class="app-header">
+      <div class="header-content">
+        <h1>Тренировка: Дятлы</h1>
+        <p class="subtitle">Определяйте виды без ограничения времени</p>
+      </div>
+    </header>
+
+    <main class="practice-container">
+      <div class="stats-bar">
+        <div class="stat-item correct">
+          <div class="stat-value" id="correct-count">0</div>
+          <div class="stat-label">Правильно</div>
+        </div>
+        <div class="stat-item incorrect">
+          <div class="stat-value" id="incorrect-count">0</div>
+          <div class="stat-label">Неправильно</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="accuracy">0%</div>
+          <div class="stat-label">Точность</div>
+        </div>
+      </div>
+      
+      <div class="bird-display">
+        <button class="fullscreen-btn" id="fullscreen-btn" title="Полноэкранный режим">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+          </svg>
+        </button>
+        <div class="bird-image-container">
+          <img id="bird-image" class="bird-image" src="" alt="Фото дятла" loading="lazy">
+        </div>
+      </div>
+      
+      <div id="feedback" class="feedback">
+        <div class="feedback-title">
+          <span id="feedback-text"></span>
+        </div>
+        <div class="hint-content" id="hint-content"></div>
+      </div>
+      
+      <div class="options-grid" id="options-container">
+        <!-- Варианты будут добавлены через JS -->
+      </div>
+      
+      <div class="action-buttons">
+        <button id="hint-btn" class="hint-btn">
+          <span id="hint-btn-text">Подсказка</span>
+        </button>
+        <button id="next-btn" class="next-btn" disabled>Следующий дятел</button>
+      </div>
+    </main>
+
+    <footer class="app-footer">
+      <button class="admin-btn" onclick="window.location.href='index-woodpeckers.html'">На главную</button>
+    </footer>
+  </div>
+
+  <script>
+    // Данные о дятлах
+    const woodpeckersData = [
+      {
+        id: 1,
+        name: "Большой пёстрый дятел",
+        scientific: "Dendrocopos major",
+        image: "images/woodpeckers/great-spotted.jpg",
+        description: "Самый распространённый дятел с чёрно-белым оперением и красным подхвостьем.",
+        hint: "Ищите красное пятно на затылке у самцов и белые плечевые пятна.",
+        size: "22-23 см",
+        weight: "70-100 г"
+      },
+      {
+        id: 2,
+        name: "Малый пёстрый дятел",
+        scientific: "Dryobates minor",
+        image: "images/woodpeckers/lesser-spotted.jpg",
+        description: "Самый маленький дятел с поперечно-полосатыми боками.",
+        hint: "Размером с воробья, у самцов красная шапочка.",
+        size: "14-16 см",
+        weight: "20-30 г"
+      },
+      {
+        id: 3,
+        name: "Белоспинный дятел",
+        scientific: "Dendrocopos leucotos",
+        image: "images/woodpeckers/white-backed.jpg",
+        description: "Крупный дятел с чисто-белой спиной и розовым подхвостьем.",
+        hint: "Белая спина без чёрных полос и розовый низ.",
+        size: "24-26 см",
+        weight: "100-130 г"
+      },
+      {
+        id: 4,
+        name: "Средний пёстрый дятел",
+        scientific: "Dendrocopos medius",
+        image: "images/woodpeckers/middle-spotted.jpg",
+        description: "Дятел с красной шапочкой и слабым полосатым рисунком.",
+        hint: "Красная шапка до лба и розовато-красное подхвостье.",
+        size: "20-22 см",
+        weight: "50-80 г"
+      },
+      {
+        id: 5,
+        name: "Трёхпалый дятел",
+        scientific: "Picoides tridactylus",
+        image: "images/woodpeckers/three-toed.jpg",
+        description: "Дятел с жёлтой шапочкой и чёрным рисунком на спине.",
+        hint: "Жёлтая шапочка у самцов и отсутствие красных отметин.",
+        size: "21-24 см",
+        weight: "50-90 г"
+      },
+      {
+        id: 6,
+        name: "Зелёный дятел",
+        scientific: "Picus viridis",
+        image: "images/woodpeckers/green.jpg",
+        description: "Крупный дятел с оливково-зелёным окрасом и красной шапочкой.",
+        hint: "Зелёное оперение и чёрная маска вокруг глаз.",
+        size: "30-36 см",
+        weight: "150-250 г"
+      },
+      {
+        id: 7,
+        name: "Седой дятел",
+        scientific: "Picus canus",
+        image: "images/woodpeckers/grey-headed.jpg",
+        description: "Похож на зелёного дятла, но с серой головой и меньшими размерами.",
+        hint: "Серая голова и слабый ус у самцов.",
+        size: "25-28 см",
+        weight: "100-140 г"
+      },
+      {
+        id: 8,
+        name: "Желна (чёрный дятел)",
+        scientific: "Dryocopus martius",
+        image: "images/woodpeckers/black.jpg",
+        description: "Самый крупный дятел с полностью чёрным оперением и красной шапочкой.",
+        hint: "Размером с ворону, у самцов красная шапка.",
+        size: "45-50 см",
+        weight: "250-400 г"
+      },
+      {
+        id: 9,
+        name: "Вертишейка",
+        scientific: "Jynx torquilla",
+        image: "images/woodpeckers/wryneck.jpg",
+        description: "Необычный дятел с защитной окраской, умеет вертеть головой.",
+        hint: "Пёстрая окраска, напоминающая кору дерева.",
+        size: "16-18 см",
+        weight: "30-50 г"
+      }
+      // Остальные виды дятлов...
+    ];
+
+    // Состояние приложения
+    let currentBird;
+    let correctAnswers = 0;
+    let incorrectAnswers = 0;
+    let totalAttempts = 0;
+    let hintUsed = false;
+    let answered = false;
+
+    // Элементы DOM
+    const birdImage = document.getElementById('bird-image');
+    const optionsContainer = document.getElementById('options-container');
+    const feedback = document.getElementById('feedback');
+    const feedbackText = document.getElementById('feedback-text');
+    const hintContent = document.getElementById('hint-content');
+    const hintBtn = document.getElementById('hint-btn');
+    const nextBtn = document.getElementById('next-btn');
+    const correctCount = document.getElementById('correct-count');
+    const incorrectCount = document.getElementById('incorrect-count');
+    const accuracyDisplay = document.getElementById('accuracy');
+    const fullscreenBtn = document.getElementById('fullscreen-btn');
+
+    // Инициализация
+    document.addEventListener('DOMContentLoaded', () => {
+      displayNewBird();
+      setupEventListeners();
+    });
+
+    function displayNewBird() {
+      resetState();
+      currentBird = getRandomBird();
+      loadBirdImage(currentBird.image);
+      
+      const options = getRandomOptions(currentBird, 4);
+      renderOptions(options);
+      updateProgress();
+    }
+
+    function getRandomBird() {
+      return woodpeckersData[Math.floor(Math.random() * woodpeckersData.length)];
+    }
+
+    function loadBirdImage(src) {
+      birdImage.src = '';
+      const loader = document.createElement('div');
+      loader.className = 'image-loader';
+      birdImage.parentNode.appendChild(loader);
+      
+      const img = new Image();
+      img.src = src;
+      img.onload = () => {
+        birdImage.src = src;
+        if (loader.parentNode) {
+          loader.parentNode.removeChild(loader);
+        }
+      };
+    }
+
+    function getRandomOptions(correctBird, count) {
+      const options = [correctBird];
+      
+      while (options.length < count) {
+        const randomBird = getRandomBird();
+        if (!options.some(b => b.id === randomBird.id)) {
+          options.push(randomBird);
+        }
+      }
+      
+      return shuffleArray(options);
+    }
+
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    function renderOptions(options) {
+      optionsContainer.innerHTML = '';
+      
+      options.forEach(bird => {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn';
+        btn.textContent = bird.name;
+        btn.dataset.id = bird.id;
+        btn.addEventListener('click', () => selectAnswer(bird.id));
+        optionsContainer.appendChild(btn);
+      });
+    }
+
+    function selectAnswer(selectedId) {
+      if (answered) return;
+      
+      answered = true;
+      totalAttempts++;
+      
+      const isCorrect = selectedId === currentBird.id;
+      
+      if (isCorrect) {
+        correctAnswers++;
+        correctCount.textContent = correctAnswers;
+        showFeedback(true);
+      } else {
+        incorrectAnswers++;
+        incorrectCount.textContent = incorrectAnswers;
+        showFeedback(false);
+      }
+      
+      highlightAnswers(selectedId);
+      nextBtn.disabled = false;
+      updateProgress();
+    }
+
+    function showFeedback(isCorrect) {
+      if (isCorrect) {
+        feedback.className = 'feedback correct';
+        feedbackText.textContent = `Правильно! Это ${currentBird.name} (${currentBird.scientific})`;
+      } else {
+        feedback.className = 'feedback incorrect';
+        feedbackText.textContent = `Ошибка! Правильный ответ: ${currentBird.name} (${currentBird.scientific})`;
+      }
+      
+      hintContent.textContent = currentBird.description;
+    }
+
+    function highlightAnswers(selectedId) {
+      document.querySelectorAll('.option-btn').forEach(btn => {
+        btn.disabled = true;
+        if (btn.dataset.id == currentBird.id) {
+          btn.classList.add('correct');
+        } else if (btn.dataset.id == selectedId && selectedId != currentBird.id) {
+          btn.classList.add('incorrect');
+        }
+      });
+    }
+
+    function showHint() {
+      if (hintUsed) return;
+      
+      hintUsed = true;
+      hintContent.textContent = currentBird.hint;
+      hintBtn.disabled = true;
+      hintBtn.innerHTML = '<span>Подсказка использована</span>';
+    }
+
+    function updateProgress() {
+      const total = correctAnswers + incorrectAnswers;
+      const accuracy = total > 0 ? Math.round((correctAnswers / total) * 100) : 0;
+      accuracyDisplay.textContent = `${accuracy}%`;
+    }
+
+    function resetState() {
+      answered = false;
+      hintUsed = false;
+      feedback.className = 'feedback';
+      feedbackText.textContent = '';
+      hintContent.textContent = '';
+      nextBtn.disabled = true;
+      hintBtn.disabled = false;
+      hintBtn.innerHTML = '<span>Подсказка</span>';
+    }
+
+    function setupEventListeners() {
+      nextBtn.addEventListener('click', displayNewBird);
+      hintBtn.addEventListener('click', showHint);
+      
+      fullscreenBtn.addEventListener('click', toggleFullscreen);
+      
+      // Обработка клавиатуры
+      document.addEventListener('keydown', (e) => {
+        if (answered && e.key === 'Enter') {
+          displayNewBird();
+        }
+      });
+    }
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        birdImage.requestFullscreen().catch(err => {
+          console.error(`Ошибка при переходе в полноэкранный режим: ${err.message}`);
+        });
+      } else {
+        document.exitFullscreen();
+      }
+    }
+  </script>
+</body>
+</html>
